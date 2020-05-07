@@ -23,13 +23,13 @@ export default class App extends React.Component {
       inputTime: {
         workMinutes: 0,
         workSeconds: 8,
-        breakMinutes: 5,
-        breakSeconds: 0,
+        breakMinutes: 0,
+        breakSeconds: 4,
       },
     };
   }
   componentDidMount() {
-    // this.toggleTimer();
+     this.toggleTimer();
   }
 
   componentWillUnmount() {
@@ -79,7 +79,11 @@ timerStart=false });
   tick = () => {
     if (this.state.minutes == 0 && this.state.seconds == 0) {
       if (this.state.isWorkDone) {
-        clearInterval(this.timer);
+        this.setState({
+          minutes: this.state.inputTime.workMinutes,
+          seconds: this.state.inputTime.workSeconds,
+          isWorkDone:false
+        })
       } else {
         this.setState({
           minutes: this.state.inputTime.breakMinutes,
@@ -102,11 +106,13 @@ timerStart=false });
   };
 
   pad = n => {
-    n= parseInt(n,10);
     if(isNaN(n)){
       return '00'
     }
-    else return n < 10 ? '0' : '';
+    else {
+    n= parseInt(n,10);
+    return n < 10 ? '0' : '';
+    }
   };
 
   textInputChanged = () => {
@@ -129,8 +135,8 @@ timerStart=false });
           />
           <Button title="reset" onPress={() => this.restartTimer()} />
         </View>
-        <Text>{this.state.isWorkDone? 'BREAK TIMER': 'WORK TIMER'}</Text>
-        <Text>
+        <Text style={styles.timerStyle}>{this.state.isWorkDone? 'BREAK TIMER': 'WORK TIMER'}</Text>
+        <Text style={styles.timerStyle}>
     {this.pad(this.state.minutes)}{this.state.minutes}:{this.pad(this.state.seconds)}{this.state.seconds}
         </Text>
         <Text>Work Time</Text>
@@ -217,7 +223,9 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 30,
     flex: 1,
-    paddingLeft:20,
+   paddingLeft: 60,
+    justifyContent: 'center',
+    alignContent: 'center',
   },
   buttons: {
     flexDirection: 'row',
@@ -225,13 +233,19 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    flex: 1,
   },
   textInput: {
     flexDirection: 'row',
     borderColor: 'gray',
     borderWidth: 1,
-    width: 40,
-    height: 30,
+    width: 50,
+    height: 40,
+    paddingLeft: 10,
+  },
+  timerStyle:{
+    fontSize: 30,
+    fontWeight: "bold",
+    alignItems: 'center',
+    justifyContent: 'center', 
   },
 });
