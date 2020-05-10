@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 
 let timerStart = false;
-let inputChanged = false;
+let timerPaused = false;
 
 
 export default class App extends React.Component {
@@ -42,34 +42,50 @@ export default class App extends React.Component {
       isStarted: timerStart,
     });
     if (timerStart) {
-      let mins = this.state.inputTime.workMinutes;
-      let secs = this.state.inputTime.workSeconds;
-      if (this.state.inputTime.workMinutes== 0 && this.state.inputTime.workSeconds == 0)
-       {
+      if (this.state.inputTime.workMinutes== 0 && this.state.inputTime.workSeconds == 0 && !timerPaused)       
+      {
+      let mins = this.getMinutesFromSeconds(this.state.inputTime.breakSeconds)
         this.setState({
           isWorkDone: true,
-          minutes: this.state.inputTime.breakMinutes,
-          seconds: this.state.inputTime.breakSeconds,
+          minutes: this.state.inputTime.breakMinutes + mins,
+          seconds: this.state.inputTime.breakSeconds - (mins*60),
         });
-      } else {
-        this.setState({
-          minutes: this.state.inputTime.workMinutes,
-          seconds: this.state.inputTime.workSeconds
-        });
-
       }
-      this.timer = setInterval(this.tick, 1000);
+      else {
+        if(!timerPaused){
+          console.log("timer upaused")
+        let mins = this.getMinutesFromSeconds(this.state.inputTime.workSeconds)
+        console.log("current mins",this.state.inputTime.workMinutes)
+
+        console.log("got mins from secs",Number(this.state.inputTime.workMinutes + mins))
+        
+        this.setState({
+          minutes: this.state.inputTime.workMinutes + mins,
+          seconds:this.state.inputTime.workSeconds - (mins*60),
+        });
+      }
+      else{
+        timerPaused=false;
+      }
+      }
+       this.timer = setInterval(this.tick, 1000);
+      
     } else {
       clearInterval(this.timer);
+      timerPaused = true;
     }
   }
 
+  getMinutesFromSeconds(secs){
+    return Math.floor(secs/60);
+  }
   restartTimer() {
     clearInterval(this.timer)
+    let mins = this.getMinutesFromSeconds(this.state.inputTime.workSeconds);
        this.setState({
         isWorkDone: false,
-        minutes: this.state.inputTime.workMinutes,
-        seconds: this.state.inputTime.workSeconds,
+        minutes: this.state.inputTime.workMinutes + mins,
+        seconds: this.state.inputTime.workSeconds - (mins*60),
         isStarted: false
        },
        () => {
@@ -79,15 +95,17 @@ timerStart=false });
   tick = () => {
     if (this.state.minutes == 0 && this.state.seconds == 0) {
       if (this.state.isWorkDone) {
+        let mins = this.getMinutesFromSeconds(this.state.inputTime.workSeconds)
         this.setState({
-          minutes: this.state.inputTime.workMinutes,
-          seconds: this.state.inputTime.workSeconds,
+          minutes: this.state.inputTime.workMinutes + mins,
+          seconds: this.state.inputTime.workSeconds - (mins*60),
           isWorkDone:false
         })
       } else {
+        let mins = this.getMinutesFromSeconds(this.state.inputTime.breakSeconds)
         this.setState({
-          minutes: this.state.inputTime.breakMinutes,
-          seconds: this.state.inputTime.breakSeconds,
+          minutes: this.state.inputTime.breakMinutes + mins,
+          seconds: this.state.inputTime.breakSeconds - (mins*60),
           isWorkDone:true
         });
       }
@@ -98,6 +116,8 @@ timerStart=false });
           seconds: 59,
         }));
       } else {
+        console.log('paused ', this.state.minutes)
+
         this.setState(prevState => ({
           seconds: prevState.seconds - 1,
         }));
@@ -106,19 +126,19 @@ timerStart=false });
   };
 
   pad = n => {
-    if(isNaN(n)){
-      return '00'
-    }
-    else {
     n= parseInt(n,10);
+    if(!isNaN(n)){
     return n < 10 ? '0' : '';
-    }
+    } else {
+    console.log('in else')
+      return '00';}
   };
 
-  textInputChanged = () => {
-    console.log(this.state.workMinutes)
+ 
+  textInputChanged = (text) => {
     clearInterval(this.timer);
      timerStart = false;
+     timerPaused=false;
     this.setState({
       isStarted: timerStart,
       isWorkDone: false
@@ -148,7 +168,7 @@ timerStart=false });
               this.setState(
                 {
                   inputTime: Object.assign({}, this.state.inputTime, {
-                    workMinutes:text,
+                    workMinutes: isNaN(Number(text))?0:Number(text),
                   }),
                 },
                 () => {
@@ -166,7 +186,7 @@ timerStart=false });
               this.setState(
                 {
                   inputTime: Object.assign({}, this.state.inputTime, {
-                    workSeconds: text
+                    workSeconds: isNaN(Number(text))?0:Number(text),
                   }),
                 },
                 () => {
@@ -186,7 +206,7 @@ timerStart=false });
               this.setState(
                 {
                   inputTime: Object.assign({}, this.state.inputTime, {
-                    breakMinutes: text,
+                    breakMinutes: isNaN(Number(text))?0:Number(text),
                   }),
                 },
                 () => {
@@ -204,7 +224,7 @@ timerStart=false });
               this.setState(
                 {
                   inputTime: Object.assign({}, this.state.inputTime, {
-                    breakSeconds: text,
+                    breakSeconds: isNaN(Number(text))?0:Number(text),
                   }),
                 },
                 () => {
